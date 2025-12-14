@@ -42,3 +42,45 @@ function AddonManager:Get(index) end
 ---@return boolean
 ---@nodiscard
 function AddonManager:IsLoaded(name) end
+
+---Returns the addons current state.
+---@param self AddonManager
+---@param name string
+---@return number
+function AddonManager:GetState(name) end
+
+---Returns the addons author.
+---@param self AddonManager
+---@param name string
+---@return string|nil
+function AddonManager:GetAuthor(name) end
+
+---Returns the addons description.
+---@param self AddonManager
+---@param name string
+---@return string|nil
+function AddonManager:GetDescription(name) end
+
+---Returns the addons file name.
+---@param self AddonManager
+---@param name string
+---@return string|nil
+function AddonManager:GetFileName(name) end
+
+---Returns the addons link.
+---@param self AddonManager
+---@param name string
+---@return string|nil
+function AddonManager:GetLink(name) end
+
+---Returns the addons version.
+---@param self AddonManager
+---@param name string
+---@return string|nil
+function AddonManager:GetVersion(name) end
+
+---Returns the addons current memory usage.
+---@param self AddonManager
+---@param name string
+---@return string|nil
+function AddonManager:GetMemoryUsage(name) end
