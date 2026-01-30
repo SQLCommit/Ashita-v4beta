@@ -1,5 +1,5 @@
 --[[
-* Addons - Copyright (c) 2024 Ashita Development Team
+* Addons - Copyright (c) 2025 Ashita Development Team
 * Contact: https://www.ashitaxi.com/
 * Contact: https://discord.gg/Ashita
 *
@@ -19,8 +19,8 @@
 * along with Ashita.  If not, see <https://www.gnu.org/licenses/>.
 --]]
 
-require('common');
-require('win32types');
+require 'common';
+require 'win32types';
 
 local chat      = require 'chat';
 local ffi       = require 'ffi';
@@ -93,22 +93,20 @@ local itemdata = T{
     },
 };
 
-itemdata.ptrs.parse_augments        = ashita.memory.find('FFXiMain.dll', 0, '8B54240481EC????????B95A00000033', 0, 0);
-itemdata.ptrs.parse_synthesis_rate  = ashita.memory.find('FFXiMain.dll', 0, '8B5424048B42088BC883E10F4983F903', 0, 0);
+itemdata.ptrs.parse_augments        = ashita.memory.find(0, 0, '8B54240481EC????????B95A00000033', 0, 0);
+itemdata.ptrs.parse_synthesis_rate  = ashita.memory.find(0, 0, '8B5424048B42088BC883E10F4983F903', 0, 0);
 
 if (not itemdata.ptrs:all(function (v) return v ~= nil; end)) then
     error(chat.header(addon.name):append(chat.error('Error: Failed to locate required pointers for itemdata library.')));
     return;
 end
 
---[[
-* Parses an items extra data for recast/timestamp information.
-*
-* @param {userdata} item - The item object to be parsed.
-* @param {userdata} ritem - The item resource object.
-* @param {boolean} is_equipped - Flag that states if the item is equipped or not.
-* @return {table} The table of timer related information.
---]]
+---Parses an items extra data for recast/timestamp information.
+---@param item item_t The item object to be parsed.
+---@param ritem IItem The item resource object.
+---@param is_equipped boolean Flag that states if the item is equipped or not.
+---@return table
+---@nodiscard
 itemdata.parse_timer_info = function (item, ritem, is_equipped)
     local reader = breader:new(T{}, item.Extra);
 
@@ -160,13 +158,11 @@ itemdata.parse_timer_info = function (item, ritem, is_equipped)
     return data;
 end
 
---[[
-* Parses an items extra data for augment information using the built-in game function.
-*
-* @param {userdata} item - The item object to be parsed.
-* @param {userdata} ritem - The item resource object.
-* @return {table} The table of augment information parsed from the item.
---]]
+---Parses an items extra data for augment information using the built-in game function.
+---@param item item_t The item object to be parsed.
+---@param ritem IItem The item resource object.
+---@return table
+---@nodiscard
 itemdata.parse_augments = function (item, ritem)
     local func = ffi.cast('parse_augments_f', itemdata.ptrs.parse_augments);
     local data = ffi.new('augmentdata_t', {});
@@ -189,17 +185,15 @@ itemdata.parse_augments = function (item, ritem)
     return augments;
 end
 
---[[
-* Parses a crafting shields synthesis success rate using the built-in game function.
-*
-* @param {userdata} item - The item object to be parsed.
-* @param {userdata} ritem - The item resource object.
-* @return {number} The synthesis success rate.
-* @note
-*       Due to limitations with Lua's number system, it is not possible to accurately calculate this value
-*       manually within raw Lua. There is a chance of bit loss due to the max number limit in Lua. Instead,
-*       this wrapper will call the game function used to handle this calculation for us.
---]]
+---Parses a crafting shields synthesis success rate using the built-in game function.
+---
+---Due to limitations with Lua's number system, it is not possible to accurately calculate this value
+---manually within raw Lua. There is a chance of bit loss due to the max number limit in Lua. Instead,
+---this wrapper will call the game function used to handle this calculation for us.
+---@param item item_t The item object to be parsed.
+---@param ritem IItem The item resource object.
+---@return number
+---@nodiscard
 itemdata.parse_shield_synthesis_rate = function (item, ritem)
     local func = ffi.cast('parse_synthesis_rate_f', itemdata.ptrs.parse_synthesis_rate);
     local data = ffi.new('augmentdata_t', {});
@@ -214,13 +208,11 @@ itemdata.parse_shield_synthesis_rate = function (item, ritem)
     return func(data);
 end
 
---[[
-* Returns the name of a linkshell parsed from the given packed data.
-*
-* @param {string} data - The data holding the name to be parsed.
-* @param {number|nil} offset - The offset to begin parsing the name at. (optional)
-* @return {string} The name of the linkshell.
---]]
+---Returns the name of a linkshell parsed from the given packed data.
+---@param data string The data holding the name to be parsed.
+---@param offset? number The offset to begin parsing the name at.
+---@return string
+---@nodiscard
 itemdata.parse_linkshell_name = function (data, offset)
     if (data == nil or type(data) ~= 'string') then
         return '';
@@ -234,13 +226,11 @@ itemdata.parse_linkshell_name = function (data, offset)
         :flatten():concat():trim('\0');
 end
 
---[[
-* Returns the name of a signature parsed from the given packed data.
-*
-* @param {string} data - The data holding the name to be parsed.
-* @param {number|nil} offset - The offset to begin parsing the name at. (optional)
-* @return {string} The name of the signature.
---]]
+---Returns the name of a signature parsed from the given packed data.
+---@param data string The data holding the name to be parsed.
+---@param offset? number The offset to begin parsing the name at.
+---@return string
+---@nodiscard
 itemdata.parse_signature = function (data, offset)
     if (data == nil or type(data) ~= 'string') then
         return '';
@@ -254,13 +244,11 @@ itemdata.parse_signature = function (data, offset)
         :flatten():concat():trim('\0');
 end
 
---[[
-* Returns the name of a signature parsed from the given packed data.
-*
-* @param {string} data - The data holding the name to be parsed.
-* @param {number|nil} offset - The offset to begin parsing the name at. (optional)
-* @return {string} The name of the signature.
---]]
+---Returns the name of a signature parsed from the given packed data.
+---@param data string The data holding the name to be parsed.
+---@param offset? number The offset to begin parsing the name at.
+---@return string
+---@nodiscard
 itemdata.parse_signature_soul_plate = function (data, offset)
     if (data == nil or type(data) ~= 'string') then
         return '';
@@ -278,13 +266,11 @@ itemdata.parse_signature_soul_plate = function (data, offset)
         :flatten():concat():trim('\0');
 end
 
---[[
-* Parses the extra data of an item. [Kind: 0x03 - Fish]
-*
-* @param {userdata} item - The item object to be parsed.
-* @param {userdata} ritem - The item resource object.
-* @return {table} The parsed item information.
---]]
+---Parses the extra data of an item. [Kind: 0x03 - Fish]
+---@param item item_t The item object to be parsed.
+---@param ritem IItem The item resource object.
+---@return table
+---@nodiscard
 itemdata.parse_item_fish = function (item, ritem)
     local reader = breader:new(T{}, item.Extra);
     local data = T{
@@ -298,23 +284,20 @@ itemdata.parse_item_fish = function (item, ritem)
     return data;
 end
 
---[[
-* Parses the raw augment information on certain kinds of items.
-*
-* @param {userdata} item - The item object to be parsed.
-* @param {userdata} ritem - The item resource object.
-* @return {table} The parsed item information.
-* @note
-*
-*   This library will not make use of this function by default. It must be manually enabled when
-*   the library is included. Otherwise, it is just wasted processing power that does not need to
-*   happen. If you wish to enable raw value information, you can do the following when including
-*   this library:
-*
-*   local itemdata = require 'ffxi.itemdata';
-*   itemdata.config.use_raw = true;
-*
---]]
+---Parses the raw augment information on certain kinds of items.
+---
+---  This library will not make use of this function by default. It must be manually enabled when
+---  the library is included. Otherwise, it is just wasted processing power that does not need to
+---  happen. If you wish to enable raw value information, you can do the following when including
+---  this library:
+---
+---  local itemdata = require 'ffxi.itemdata';<br>
+---  itemdata.config.use_raw = true;
+---
+---@param item item_t The item object to be parsed.
+---@param ritem IItem The item resource object.
+---@return table
+---@nodiscard
 itemdata.parse_raw_augments = function (item, ritem)
     local reader = breader:new(T{}, item.Extra);
     local data = T{
@@ -549,18 +532,14 @@ itemdata.parse_raw_augments = function (item, ritem)
 
         return data;
     end
-
-    return data;
 end
 
---[[
-* Parses the extra data of an item. [Kind: 0x04 - Weapon]
-*
-* @param {userdata} item - The item object to be parsed.
-* @param {userdata} ritem - The item resource object.
-* @param {boolean} is_equipped - Flag that states if the item is equipped or not.
-* @return {table} The parsed item information.
---]]
+---Parses the extra data of an item. [Kind: 0x04 - Weapon]
+---@param item item_t The item object to be parsed.
+---@param ritem IItem The item resource object.
+---@param is_equipped boolean Flag that states if the item is equipped or not.
+---@return table
+---@nodiscard
 itemdata.parse_item_weapon = function (item, ritem, is_equipped)
     local data = T{
         kind        = ritem.Type,
@@ -574,14 +553,12 @@ itemdata.parse_item_weapon = function (item, ritem, is_equipped)
     return data:merge(itemdata.parse_timer_info(item, ritem, is_equipped));
 end
 
---[[
-* Parses the extra data of an item. [Kind: 0x05 - Armor]
-*
-* @param {userdata} item - The item object to be parsed.
-* @param {userdata} ritem - The item resource object.
-* @param {boolean} is_equipped - Flag that states if the item is equipped or not.
-* @return {table} The parsed item information.
---]]
+---Parses the extra data of an item. [Kind: 0x05 - Armor]
+---@param item item_t The item object to be parsed.
+---@param ritem IItem The item resource object.
+---@param is_equipped boolean Flag that states if the item is equipped or not.
+---@return table
+---@nodiscard
 itemdata.parse_item_armor = function (item, ritem, is_equipped)
     local data = T{
         kind        = ritem.Type,
@@ -595,13 +572,11 @@ itemdata.parse_item_armor = function (item, ritem, is_equipped)
     return data:merge(itemdata.parse_timer_info(item, ritem, is_equipped));
 end
 
---[[
-* Parses the extra data of an item. [Kind: 0x06 - Linkshell, Linksack, Linkpearl]
-*
-* @param {userdata} item - The item object to be parsed.
-* @param {userdata} ritem - The item resource object.
-* @return {table} The parsed item information.
---]]
+---Parses the extra data of an item. [Kind: 0x06 - Linkshell, Linksack, Linkpearl]
+---@param item item_t The item object to be parsed.
+---@param ritem IItem The item resource object.
+---@return table
+---@nodiscard
 itemdata.parse_item_linkshell = function (item, ritem)
     local reader = breader:new(T{}, item.Extra);
     local data = T{
@@ -620,13 +595,11 @@ itemdata.parse_item_linkshell = function (item, ritem)
     return data;
 end
 
---[[
-* Parses the extra data of an item. [Kind: 0x0A - Furnishing]
-*
-* @param {userdata} item - The item object to be parsed.
-* @param {userdata} ritem - The item resource object.
-* @return {table} The parsed item information.
---]]
+---Parses the extra data of an item. [Kind: 0x0A - Furnishing]
+---@param item item_t The item object to be parsed.
+---@param ritem IItem The item resource object.
+---@return table
+---@nodiscard
 itemdata.parse_item_furnishing = function (item, ritem)
     local reader = breader:new(T{}, item.Extra, 1);
     local data = T{
@@ -646,13 +619,11 @@ itemdata.parse_item_furnishing = function (item, ritem)
     return data;
 end
 
---[[
-* Parses the extra data of an item. [Kind: 0x0C - Flower Pot]
-*
-* @param {userdata} item - The item object to be parsed.
-* @param {userdata} ritem - The item resource object.
-* @return {table} The parsed item information.
---]]
+---Parses the extra data of an item. [Kind: 0x0C - Flower Pot]
+---@param item item_t The item object to be parsed.
+---@param ritem IItem The item resource object.
+---@return table
+---@nodiscard
 itemdata.parse_item_flowerpot = function (item, ritem)
     local reader = breader:new(T{}, item.Extra);
     local data = T{
@@ -686,13 +657,11 @@ itemdata.parse_item_flowerpot = function (item, ritem)
     return data;
 end
 
---[[
-* Parses the extra data of an item. [Kind: 0x0E - Mannequin]
-*
-* @param {userdata} item - The item object to be parsed.
-* @param {userdata} ritem - The item resource object.
-* @return {table} The parsed item information.
---]]
+---Parses the extra data of an item. [Kind: 0x0E - Mannequin]
+---@param item item_t The item object to be parsed.
+---@param ritem IItem The item resource object.
+---@return table
+---@nodiscard
 itemdata.parse_item_mannequin = function (item, ritem)
     local reader = breader:new(T{}, item.Extra, 1);
     local data = T{
@@ -722,13 +691,11 @@ itemdata.parse_item_mannequin = function (item, ritem)
     return data;
 end
 
---[[
-* Parses the extra data of an item. [Kind: 0x0F - Book]
-*
-* @param {userdata} item - The item object to be parsed.
-* @param {userdata} ritem - The item resource object.
-* @return {table} The parsed item information.
---]]
+---Parses the extra data of an item. [Kind: 0x0F - Book]
+---@param item item_t The item object to be parsed.
+---@param ritem IItem The item resource object.
+---@return table
+---@nodiscard
 itemdata.parse_item_book = function (item, ritem)
     local reader = breader:new(T{}, item.Extra);
     local data = T{
@@ -759,13 +726,11 @@ itemdata.parse_item_book = function (item, ritem)
     return data;
 end
 
---[[
-* Parses the extra data of an item. [Kind: 0x11 - Betting Slip]
-*
-* @param {userdata} item - The item object to be parsed.
-* @param {userdata} ritem - The item resource object.
-* @return {table} The parsed item information.
---]]
+---Parses the extra data of an item. [Kind: 0x11 - Betting Slip]
+---@param item item_t The item object to be parsed.
+---@param ritem IItem The item resource object.
+---@return table
+---@nodiscard
 itemdata.parse_item_betting_slip = function (item, ritem)
     local reader = breader:new(T{}, item.Extra);
     local data = T{
@@ -781,13 +746,11 @@ itemdata.parse_item_betting_slip = function (item, ritem)
     return data;
 end
 
---[[
-* Parses the extra data of an item. [Kind: 0x12 - Soul Plate]
-*
-* @param {userdata} item - The item object to be parsed.
-* @param {userdata} ritem - The item resource object.
-* @return {table} The parsed item information.
---]]
+---Parses the extra data of an item. [Kind: 0x12 - Soul Plate]
+---@param item item_t The item object to be parsed.
+---@param ritem IItem The item resource object.
+---@return table
+---@nodiscard
 itemdata.parse_item_soul_plate = function (item, ritem)
     local reader = breader:new(T{}, item.Extra, 18);
     local data = T{
@@ -809,13 +772,11 @@ itemdata.parse_item_soul_plate = function (item, ritem)
     return data;
 end
 
---[[
-* Parses the extra data of an item. [Kind: 0x13 - Reflector]
-*
-* @param {userdata} item - The item object to be parsed.
-* @param {userdata} ritem - The item resource object.
-* @return {table} The parsed item information.
---]]
+---Parses the extra data of an item. [Kind: 0x13 - Reflector]
+---@param item item_t The item object to be parsed.
+---@param ritem IItem The item resource object.
+---@return table
+---@nodiscard
 itemdata.parse_item_reflector = function (item, ritem)
     local reader = breader:new(T{}, item.Extra);
     local data = T{
@@ -838,13 +799,11 @@ itemdata.parse_item_reflector = function (item, ritem)
     return data;
 end
 
---[[
-* Parses the extra data of an item. [Kind: 0x14 - Log]
-*
-* @param {userdata} item - The item object to be parsed.
-* @param {userdata} ritem - The item resource object.
-* @return {table} The parsed item information.
---]]
+---Parses the extra data of an item. [Kind: 0x14 - Log]
+---@param item item_t The item object to be parsed.
+---@param ritem IItem The item resource object.
+---@return table
+---@nodiscard
 itemdata.parse_item_log = function (item, ritem)
     local reader = breader:new(T{}, item.Extra);
     local data = T{
@@ -865,19 +824,17 @@ itemdata.parse_item_log = function (item, ritem)
     return data;
 end
 
---[[
-* Parses the extra data of an item. [Kind: 0x15 - Lottery Tickets]
-*
-* @param {userdata} item - The item object to be parsed.
-* @param {userdata} ritem - The item resource object.
-* @return {table} The parsed item information.
-* @note
-*       Mog Bonanza Marbles/Pearls will hide the contest name if the
-*       given title index is larger than the known count of strings.
-*
-*       Mog Bonanza Marbles are intended to display 5 numbers. (Can display 8.)
-*       Mog Bonanza Pearls are intended to display 3 numbers. (Can display 8.)
---]]
+---Parses the extra data of an item. [Kind: 0x15 - Lottery Tickets]
+---
+---  Mog Bonanza Marbles/Pearls will hide the contest name if the
+---  given title index is larger than the known count of strings.
+---
+---  Mog Bonanza Marbles are intended to display 5 numbers. (Can display 8.)<br>
+---  Mog Bonanza Pearls are intended to display 3 numbers. (Can display 8.)
+---@param item item_t The item object to be parsed.
+---@param ritem IItem The item resource object.
+---@return table
+---@nodiscard
 itemdata.parse_item_lottery_ticket = function (item, ritem)
     local reader = breader:new(T{}, item.Extra);
     local data = T{
@@ -891,14 +848,12 @@ itemdata.parse_item_lottery_ticket = function (item, ritem)
     return data;
 end
 
---[[
-* Parses the extra data of an item. [Kind: 0x16 - Tabula (M)]
-* Parses the extra data of an item. [Kind: 0x17 - Tabula (R)]
-*
-* @param {userdata} item - The item object to be parsed.
-* @param {userdata} ritem - The item resource object.
-* @return {table} The parsed item information.
---]]
+---Parses the extra data of an item. [Kind: 0x16 - Tabula (M)]<br>
+---Parses the extra data of an item. [Kind: 0x17 - Tabula (R)]
+---@param item item_t The item object to be parsed.
+---@param ritem IItem The item resource object.
+---@return table
+---@nodiscard
 itemdata.parse_item_tabula = function (item, ritem)
     local reader = breader:new(T{}, item.Extra);
     local data = T{
@@ -923,13 +878,11 @@ itemdata.parse_item_tabula = function (item, ritem)
     return data;
 end
 
---[[
-* Parses the extra data of an item. [Kind: 0x1A - Evolith]
-*
-* @param {userdata} item - The item object to be parsed.
-* @param {userdata} ritem - The item resource object.
-* @return {table} The parsed item information.
---]]
+---Parses the extra data of an item. [Kind: 0x1A - Evolith]
+---@param item item_t The item object to be parsed.
+---@param ritem IItem The item resource object.
+---@return table
+---@nodiscard
 itemdata.parse_item_evolith = function (item, ritem)
     local data = T{
         kind        = ritem.Type,
@@ -943,13 +896,11 @@ itemdata.parse_item_evolith = function (item, ritem)
     return data;
 end
 
---[[
-* Parses the extra data of an item. [Kind: 0x1F - Crafting Set]
-*
-* @param {userdata} item - The item object to be parsed.
-* @param {userdata} ritem - The item resource object.
-* @return {table} The parsed item information.
---]]
+---Parses the extra data of an item. [Kind: 0x1F - Crafting Set]
+---@param item item_t The item object to be parsed.
+---@param ritem IItem The item resource object.
+---@return table
+---@nodiscard
 itemdata.parse_item_crafting_set = function (item, ritem)
     local reader = breader:new(T{}, item.Extra, 2);
     local data = T{
@@ -962,13 +913,11 @@ itemdata.parse_item_crafting_set = function (item, ritem)
     return data;
 end
 
---[[
-* Parses the extra data of an item. [Kind: (default)]
-*
-* @param {userdata} item - The item object to be parsed.
-* @param {userdata} ritem - The item resource object.
-* @return {table} The parsed item information.
---]]
+---Parses the extra data of an item. [Kind: (default)]
+---@param item item_t The item object to be parsed.
+---@param ritem IItem The item resource object.
+---@return table
+---@nodiscard
 itemdata.parse_item_default = function (item, ritem)
     local reader = breader:new(T{}, item.Extra);
     local data = T{
@@ -1014,17 +963,15 @@ itemdata.parse_item_default = function (item, ritem)
     return data;
 end
 
---[[
-* Parses the extra data of the given item.
-*
-* @param {userdata} item - The item object to be parsed.
-* @param {boolean|nil} is_equipped - Flag that states if the item being pased is currently equipped. (Optional)
-* @return {table} The table of parsed information.
-* @note
-*       The 'is_equipped' flag is used for equipment based items to properly allow for certain time based calculations
-*       to be performed. If this flag is not given for equipped items, then there is a chance the returned time related
-*       information may be incorrect!
---]]
+---Parses the extra data of the given item.
+---
+---  The 'is_equipped' flag is used for equipment based items to properly allow for certain time based calculations
+---  to be performed. If this flag is not given for equipped items, then there is a chance the returned time related
+---  information may be incorrect!
+---@param item item_t The item object to be parsed.
+---@param is_equipped? boolean Flag that states if the item being pased is currently equipped.
+---@return table
+---@nodiscard
 itemdata.parse = function (item, is_equipped)
     if (item == nil) then
         return T{};
